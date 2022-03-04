@@ -314,7 +314,7 @@
             self.nfcSession = [[NFCNDEFReaderSession new]initWithDelegate:self queue:nil invalidateAfterFirstRead:TRUE];
         }
         sessionCallbackId = [command.callbackId copy];
-        self.nfcSession.alertMessage = @"Hold near NFC tag to scan.";
+        self.nfcSession.alertMessage = @"Halte das iPhone vor deinen Token.";
         [self.nfcSession beginSession];
         
     } else if (@available(iOS 11.0, *)) {
@@ -379,11 +379,11 @@
         // Error Code=403 "NDEF tag does not contain any NDEF message" is not an error for this plugin
         if (error && error.code != 403) {
             NSLog(@"%@", error);
-            [self closeSession:session withError:@"Read Failed."];
+            [self closeSession:session withError:@"Token konnte nicht gelesen werden"];
             return;
         } else {
             NSLog(@"%@", message);
-            session.alertMessage = @"Tag successfully read.";
+            session.alertMessage = @"Token erkannt";
             [self fireNdefEvent:message metaData:metaData];
             [self closeSession:session];
         }
