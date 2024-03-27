@@ -3,7 +3,7 @@
     xmlns="http://www.phonegap.com/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android"
     id="phonegap-nfc"
-    version="1.2.0">
+    version="1.2.2">
 
     <name>NFC</name>
 
@@ -126,6 +126,18 @@
         <config-file parent="com.apple.developer.nfc.readersession.formats" platform="ios" target="*-Release.plist">
             <array>
                 <string>TAG</string>  
+            </array>
+        </config-file>
+        <edit-config target="com.apple.developer.nfc.readersession.formats" platform="ios" file="*-Info.plist" mode="overwrite">
+            <array>
+                <string>TAG</string>
+            </array>
+        </edit-config>
+
+        <config-file parent="com.apple.developer.nfc.readersession.iso7816.select-identifiers" platform="ios" target="*-Info.plist">
+            <array>
+                <string>D2760000850101</string>
+                <string>D2760000850100</string>
             </array>
         </config-file>
         
