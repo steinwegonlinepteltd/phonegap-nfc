@@ -20,6 +20,7 @@
 - (void)beginSession:(CDVInvokedUrlCommand *)command;
 // deprecated use stopScan
 - (void)invalidateSession:(CDVInvokedUrlCommand *)command;
+- (void)close:(CDVInvokedUrlCommand *)command;
 
 // Added iOS 13
 - (void)scanNdef:(CDVInvokedUrlCommand *)command;
