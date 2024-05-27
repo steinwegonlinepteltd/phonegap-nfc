@@ -349,6 +349,7 @@
 - (void)startScanSession:(CDVInvokedUrlCommand*)command {
     
     self.writeMode = NO;
+    self.commandMode = NO;
     
     NSLog(@"shouldUseTagReaderSession %d", self.shouldUseTagReaderSession);
     NSLog(@"callbackOnSessionStart %d", self.sendCallbackOnSessionStart);
