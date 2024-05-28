@@ -33,6 +33,7 @@
 - (void)removeNdef:(CDVInvokedUrlCommand *)command;
 - (void)enabled:(CDVInvokedUrlCommand *)command;
 - (void)writeTag:(CDVInvokedUrlCommand *)command;
+- (void)alert:(CDVInvokedUrlCommand *)command;
 
 // Internal implementation
 - (void)channel:(CDVInvokedUrlCommand *)command;

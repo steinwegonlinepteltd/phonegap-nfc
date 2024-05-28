@@ -247,6 +247,11 @@
     [self cancelScan:command];
 }
 
+- (void)alert:(CDVInvokedUrlCommand *)command API_AVAILABLE(ios(11.0)){
+    NSString *message = [command argumentAtIndex:0];
+    self.nfcSession.alertMessage = message;
+}
+
 #pragma mark - NFCNDEFReaderSessionDelegate
 
 // iOS 11 & 12
