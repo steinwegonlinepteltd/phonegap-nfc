@@ -566,6 +566,13 @@ var nfc = {
         });
     },
 
+    // iOS only - send alert message via the session
+    alert: function(message) {
+        return new Promise(function(resolve, reject) {
+            cordova.exec(resolve, reject, 'NfcPlugin', 'alert', [message]);
+        });      
+    },
+
     // Android NfcAdapter.enableReaderMode flags 
     FLAG_READER_NFC_A: 0x1,
     FLAG_READER_NFC_B: 0x2,
