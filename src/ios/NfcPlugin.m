@@ -23,6 +23,8 @@
 @property (strong, nonatomic) NFCReaderSession *nfcSession API_AVAILABLE(ios(11.0));
 @property (strong, nonatomic) NFCNDEFMessage *messageToWrite API_AVAILABLE(ios(11.0));
 @property (strong, nonatomic) NSData *commandAPDU API_AVAILABLE(ios(13.0));
+@property (strong, nonatomic) NSString* initializeScanMessage;
+@property (strong, nonatomic) NSString* startScanMessage;
 @end
 
 @implementation NfcPlugin
@@ -73,6 +75,8 @@
 
     NSArray<NSDictionary *> *options = [command argumentAtIndex:0];
     self.keepSessionOpen = [options valueForKey:@"keepSessionOpen"];
+    self.initializeScanMessage = [options valueForKey:@"initializeScanMessage"];
+    self.startScanMessage = [options valueForKey:@"startScanMessage"];
 
     [self startScanSession:command];
 }
@@ -87,6 +91,8 @@
 
     NSArray<NSDictionary *> *options = [command argumentAtIndex:0];
     self.keepSessionOpen = [options valueForKey:@"keepSessionOpen"];
+    self.initializeScanMessage = [options valueForKey:@"initializeScanMessage"];
+    self.startScanMessage = [options valueForKey:@"startScanMessage"];
 
     [self startScanSession:command];
 }
@@ -268,7 +274,7 @@
 - (void) readerSession:(NFCNDEFReaderSession *)session didDetectTags:(NSArray<__kindof id<NFCNDEFTag>> *)tags API_AVAILABLE(ios(13.0)) {
     
     if (tags.count > 1) {
-        session.alertMessage = @"More than 1 tag detected. Please remove all tags and try again.";
+        session.alertMessage = @"More than 1 tag detected. Please use only one tag and try again.";
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 500 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
             NSLog(@"restaring polling");
             [session restartPolling];
@@ -281,7 +287,7 @@
     [session connectToTag:tag completionHandler:^(NSError * _Nullable error) {
         if (error) {
             NSLog(@"%@", error);
-            [self closeSession:session withError:@"Keine Verbindung. Versuche es erneut."];
+            [self closeSession:session withError:@"Failed connecting to tag. Please try again."];
             return;
         }
         
@@ -316,7 +322,7 @@
     NSLog(@"tagReaderSession didDetectTags");
     
     if (tags.count > 1) {
-        session.alertMessage = @"Es wurden mehrere Token gelesen. Bitte verwende nur einen Token.";
+        session.alertMessage = @"More than 1 tag detected. Please use only one tag and try again.";
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 500 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
             NSLog(@"restaring polling");
             [session restartPolling];
@@ -331,7 +337,7 @@
     [session connectToTag:tag completionHandler:^(NSError * _Nullable error) {
         if (error) {
             NSLog(@"%@", error);
-            [self closeSession:session withError:@"Verbindungsfehler; versuche es erneut."];
+            [self closeSession:session withError:@"Failed connecting to tag. Please try again."];
             return;
         }
 
@@ -355,6 +361,10 @@
     
     self.writeMode = NO;
     self.commandMode = NO;
+
+    if (self.initializeScanMessage == nil || self.initializeScanMessage.length == 0){
+        self.initializeScanMessage = @"Hold the iPhone in front of your token.";
+    }
     
     NSLog(@"shouldUseTagReaderSession %d", self.shouldUseTagReaderSession);
     NSLog(@"callbackOnSessionStart %d", self.sendCallbackOnSessionStart);
@@ -373,14 +383,14 @@
             self.nfcSession = [[NFCNDEFReaderSession alloc]initWithDelegate:self queue:nil invalidateAfterFirstRead:TRUE];
         }
         sessionCallbackId = [command.callbackId copy];
-        self.nfcSession.alertMessage = @"Halte das iPhone vor deinen Token.";
+        self.nfcSession.alertMessage = self.initializeScanMessage;
         [self.nfcSession beginSession];
         
     } else if (@available(iOS 11.0, *)) {
         NSLog(@"iOS < 13, using NFCNDEFReaderSession");
         self.nfcSession = [[NFCNDEFReaderSession alloc]initWithDelegate:self queue:nil invalidateAfterFirstRead:TRUE];
         sessionCallbackId = [command.callbackId copy];
-        self.nfcSession.alertMessage = @"Halte das iPhone vor deinen Token.";
+        self.nfcSession.alertMessage = self.initializeScanMessage;
         [self.nfcSession beginSession];
     } else {
         NSLog(@"iOS < 11, no NFC support");
@@ -400,7 +410,7 @@
     [tag queryNDEFStatusWithCompletionHandler:^(NFCNDEFStatus status, NSUInteger capacity, NSError * _Nullable error) {
         if (error) {
             NSLog(@"%@", error);
-            [self closeSession:session withError:@"Lesefehler; versuche es erneut."];
+            [self closeSession:session withError:@"Failed reading the tag. Please try again."];
             return;
         }
                 
@@ -434,17 +444,21 @@
     } else if (status == NFCNDEFStatusReadWrite) {
         metaData[@"isWritable"] = @TRUE;
     }
+
+    if (self.startScanMessage == nil || self.startScanMessage.length == 0){
+        self.startScanMessage = @"Token detected.";
+    }
     
     [tag readNDEFWithCompletionHandler:^(NFCNDEFMessage * _Nullable message, NSError * _Nullable error) {
 
         // Error Code=403 "NDEF tag does not contain any NDEF message" is not an error for this plugin
         if (error && error.code != 403) {
             NSLog(@"%@", error);
-            [self closeSession:session withError:@"Lesefehler; versuche es erneut."];
+            [self closeSession:session withError:@"Failed reading the tag. Please try again."];
             return;
         } else {
             NSLog(@"%@", message);
-            session.alertMessage = @"Token erkannt";
+            session.alertMessage = self.startScanMessage;
             [self fireNdefEvent:message metaData:metaData];
             [self closeSession:session];
         }
@@ -456,7 +470,7 @@
 - (void)writeNDEFTag:(NFCReaderSession * _Nonnull)session status:(NFCNDEFStatus)status tag:(id<NFCNDEFTag>)tag  API_AVAILABLE(ios(13.0)){
     switch (status) {
         case NFCNDEFStatusNotSupported:
-            [self closeSession:session withError:@"Keine gültige TimeSec ID."];  // alternate message "Tag does not support NDEF."
+            [self closeSession:session withError:@"Tag does not support NDEF."];  // alternate message "Tag does not support NDEF."
             break;
         case NFCNDEFStatusReadOnly:
             [self closeSession:session withError:@"Tag is read only."];
@@ -504,7 +518,7 @@
             break;            
         }
         default:
-            [self closeSession:session withError:@"Lesefehler; versuche es erneut"];
+            [self closeSession:session withError:@"Unexpected error. Please try again."];
     }  
 }
 
