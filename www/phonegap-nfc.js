@@ -453,25 +453,29 @@ var nfc = {
         cordova.exec(win, fail, "NfcPlugin", "makeReadOnly", []);
     },
 
-    share: function (ndefMessage, win, fail) {
-        cordova.exec(win, fail, "NfcPlugin", "shareTag", [ndefMessage]);
-    },
+    //DEPRECATED
+    //share: function (ndefMessage, win, fail) {
+    //    cordova.exec(win, fail, "NfcPlugin", "shareTag", [ndefMessage]);
+    //},
 
-    unshare: function (win, fail) {
-        cordova.exec(win, fail, "NfcPlugin", "unshareTag", []);
-    },
+    //DEPRECATED
+    //unshare: function (win, fail) {
+    //    cordova.exec(win, fail, "NfcPlugin", "unshareTag", []);
+    //},
 
-    handover: function (uris, win, fail) {
-        // if we get a single URI, wrap it in an array
-        if (!Array.isArray(uris)) {
-            uris = [ uris ];
-        }
-        cordova.exec(win, fail, "NfcPlugin", "handover", uris);
-    },
+    //DEPRECATED
+    //handover: function (uris, win, fail) {
+    //    // if we get a single URI, wrap it in an array
+    //    if (!Array.isArray(uris)) {
+    //        uris = [ uris ];
+    //    }
+    //    cordova.exec(win, fail, "NfcPlugin", "handover", uris);
+    //},
 
-    stopHandover: function (win, fail) {
-        cordova.exec(win, fail, "NfcPlugin", "stopHandover", []);
-    },
+    //DEPRECATED
+    //stopHandover: function (win, fail) {
+    //    cordova.exec(win, fail, "NfcPlugin", "stopHandover", []);
+    //},
 
     erase: function (win, fail) {
         cordova.exec(win, fail, "NfcPlugin", "eraseTag", [[]]);
