@@ -184,7 +184,7 @@
         }
 
         if (reusingSession) {                   // reusing a read session
-            [self executeCommand:self.nfcSession status:connectedTagStatus];
+            [self executeCommand:self.nfcSession];
         } else {
             [self.nfcSession beginSession];
         }
@@ -417,7 +417,7 @@
         if (self.writeMode) {
             [self writeNDEFTag:session status:status tag:tag];
         } else if (self.commandMode) {
-            [self executeCommand:session status:status];
+            [self executeCommand:session];
         } else {
             // save tag & status so we can re-use in write
             if (self.keepSessionOpen) {
@@ -496,15 +496,7 @@
     }
 }
 
-- (void)executeCommand:(NFCReaderSession * _Nonnull)session status:(NFCNDEFStatus)status API_AVAILABLE(ios(13.0)){
-    switch (status) {
-        case NFCNDEFStatusNotSupported:
-            [self closeSession:session withError:@"Tag does not support NDEF."];  // alternate message "Tag does not support NDEF."
-            break;
-        case NFCNDEFStatusReadOnly:
-            [self closeSession:session withError:@"Tag is read only."];
-            break;
-        case NFCNDEFStatusReadWrite: {            
+- (void)executeCommand:(NFCReaderSession * _Nonnull)session API_AVAILABLE(ios(13.0)){
             if (connectedTagBase.type == NFCTagTypeISO15693) {
                 id<NFCISO15693Tag> iso15693Tag = [connectedTagBase asNFCISO15693Tag];
                 RequestFlag flags = @(RequestFlagHighDataRate);
@@ -514,12 +506,7 @@
             } else if (connectedTagBase.type == NFCTagTypeISO7816Compatible) {
                 id<NFCISO7816Tag> iso7816Tag = [connectedTagBase asNFCISO7816Tag];
                 [self sendCommandAPDUISO78:session tag:iso7816Tag param:self.commandAPDU];
-            }   
-            break;            
-        }
-        default:
-            [self closeSession:session withError:@"Unexpected error. Please try again."];
-    }  
+            }
 }
 
 #pragma mark - ISO 15693 Tag functions
